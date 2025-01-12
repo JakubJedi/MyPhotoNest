@@ -12,19 +12,25 @@ import java.time.LocalDateTime;
 public class MediaFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @NotBlank
     private String fileName;
 
     @NotBlank
+    @Column(name = "sha256_hash", unique = true, nullable = false, length = 64)
     private String sha256Hash;
 
     @NotNull
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime originCreationDate;
 
     @NotNull
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime uploadDate;
+
+    @NotBlank
+    private String filePath;
 
     @PrePersist
     public void prePersist() {

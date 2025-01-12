@@ -4,6 +4,7 @@ import com.jakubjedi.myphotonest.config.PhotoUploadProperties;
 import com.jakubjedi.myphotonest.photos.entity.MediaFile;
 import com.jakubjedi.myphotonest.photos.repository.MediaFileRepository;
 import com.jakubjedi.myphotonest.photos.service.HashService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/photos")
+@Slf4j
 public class PhotosController {
     private final PhotoUploadProperties props;
     private final HashService hashService;
@@ -38,18 +40,19 @@ public class PhotosController {
             var basePath = props.getDirectory();
             ensureUploadDirExistence(Paths.get(basePath));
             Path path = Paths.get(basePath, file.getOriginalFilename());
+            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
             var fileSHA256 = hashService.calculateSHA256(path);
 
-            // Persist and save file
+            // Persist metadata
             var mediaFile = new MediaFile();
             mediaFile.setFileName(file.getOriginalFilename());
             mediaFile.setSha256Hash(fileSHA256);
+            mediaFile.setFilePath(path.toAbsolutePath().toString());
             mediaFile.setOriginCreationDate(LocalDateTime.now().minusDays(2));
-            mediaFile.prePersist();
             mediaFileRepository.save(mediaFile);
-            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
             return ResponseEntity.ok("Image uploaded");
         } catch (Exception e) {
+            log.error("Upload error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload error");
         }
     }
