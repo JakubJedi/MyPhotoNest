@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Setter
 public class MediaFile {
@@ -22,18 +20,12 @@ public class MediaFile {
     private String sha256Hash;
 
     @NotNull
-    @Column(columnDefinition = "DATETIME")
-    private LocalDateTime originCreationDate;
+    private String originCreationDate;
 
     @NotNull
-    @Column(columnDefinition = "DATETIME")
-    private LocalDateTime uploadDate;
+    private String uploadDate;
 
     @NotBlank
     private String filePath;
 
-    @PrePersist
-    public void prePersist() {
-        this.uploadDate = LocalDateTime.now();
-    }
 }
